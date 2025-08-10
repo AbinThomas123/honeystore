@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/products")
@@ -17,19 +18,33 @@ public class ProductController {
     @Autowired
     private ProductService productService;
 
-    @PostMapping("/createProduct")
-    public ResponseEntity<Product> createProduct(@RequestBody Product product)
+    @PostMapping
+    public ResponseEntity<Product> addProduct(@RequestBody Product product)
     {
-        Product products=productService.createProduct(product);
+        Product products=productService.addProduct(product);
         return new ResponseEntity<>(products, HttpStatus.CREATED);
     }
 
 
-    @GetMapping("/getAll")
+    @GetMapping
     public ResponseEntity<List<Product>> getAllProducts()
     {
         List<Product> products=productService.getAllProducts();
     return new ResponseEntity<>(products, HttpStatus.OK);
+    }
+
+    @GetMapping("/{productId}")
+    public ResponseEntity<Product> getProductById(@PathVariable Long productId)
+    {
+        Product product = productService.getProductById(productId);
+        return ResponseEntity.ok(product);
+    }
+
+    @PatchMapping("/{productId}")
+    public ResponseEntity<Product>  updateProduct(@RequestBody Map<String,Object> updates, @PathVariable Long productId)
+    {
+        Product updatedProduct = productService.updateProductPartially(productId, updates);
+        return ResponseEntity.ok(updatedProduct);
     }
 
 

@@ -8,8 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
-
+import java.util.Map;
 @Service
 public class ProductServiceImpl implements ProductService {
 
@@ -22,8 +21,34 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Product createProduct(Product product) {
+    public Product addProduct(Product product) {
 
         return productRepository.save(product);
+    }
+
+    @Override
+    public Product updateProductPartially(Long productId, Map<String, Object> updates) {
+       Product product=productRepository.findById(productId).orElseThrow(()->new RuntimeException("Product Not Found"));
+
+        for (Map.Entry<String, Object> entry : updates.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            switch (key) {
+                case "name" -> product.setName((String) value);
+                case "price" -> product.setPrice(Double.parseDouble(value.toString()));
+                case "stock" -> product.setStock(Integer.parseInt(value.toString()));
+                case "description" -> product.setDescription((String) value);
+                default -> throw new IllegalArgumentException("Invalid field: " + key);
+            }
+        }
+        return productRepository.save(product);
+    }
+
+    @Override
+    public Product getProductById(Long productId) {
+        Product product=productRepository.findById(productId).orElseThrow(()->new RuntimeException("Product Not Found for this ProductID"+productId));
+
+        return product;
+
     }
 }
