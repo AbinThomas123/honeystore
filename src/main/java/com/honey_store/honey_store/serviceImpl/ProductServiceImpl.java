@@ -5,6 +5,7 @@ import com.honey_store.honey_store.model.Product;
 import com.honey_store.honey_store.repository.ProductRepository;
 import com.honey_store.honey_store.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -49,6 +50,17 @@ public class ProductServiceImpl implements ProductService {
         Product product=productRepository.findById(productId).orElseThrow(()->new RuntimeException("Product Not Found for this ProductID"+productId));
 
         return product;
+
+    }
+
+    @Override
+    public ResponseEntity<String> deleteProductById(Long productId) {
+
+        Product product=productRepository.findById(productId).orElseThrow(()->new RuntimeException("Product Not Found for this ProductID"+productId));
+
+            productRepository.deleteById(productId);
+
+            return ResponseEntity.ok("Product Deleted Successfully " +productId);
 
     }
 }
