@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 
@@ -37,5 +38,10 @@ public class UserController {
     public ResponseEntity<Optional<User>> getUserByUserId(@PathVariable Long userId) throws Exception {
         Optional<User> user = userService.getUserByUserId(userId);
         return new ResponseEntity<>(user,HttpStatus.OK);
+    }
+    @PatchMapping("{userId}")
+    public ResponseEntity<User> updateUser(@PathVariable Long userId,@RequestBody Map<String,Object> user) throws Exception {
+        User u=userService.updateUser(userId,user);
+        return new ResponseEntity<>(u,HttpStatus.OK);
     }
 }
