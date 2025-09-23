@@ -1,0 +1,27 @@
+version: '3.9'
+
+services:
+  mysql:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: Password1
+      MYSQL_DATABASE: honey_store
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  app:
+    image: honey_store   # updated to match local build
+    build: .
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/honey_store
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: Password1
+    depends_on:
+      - mysql
+    ports:
+      - "8080:8080"
+
+volumes:
+  mysql_data:

@@ -20,8 +20,16 @@ public class Product {
     private String description;
     private double price;
     private int stock;
+    private String productUrl;
 
+    public String getProductUrl() {
+        return productUrl;
+    }
 
+    public Product setProductUrl(String productUrl) {
+        this.productUrl = productUrl;
+        return this;
+    }
 
     public Long getId() {
         return id;
