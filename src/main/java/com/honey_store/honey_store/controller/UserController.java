@@ -1,15 +1,19 @@
 package com.honey_store.honey_store.controller;
 
+import com.honey_store.honey_store.config.JwtUtil;
 import com.honey_store.honey_store.dto.UserDTO;
 import com.honey_store.honey_store.mapper.UserMapper;
+import com.honey_store.honey_store.model.Role;
 import com.honey_store.honey_store.model.User;
 import com.honey_store.honey_store.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -20,7 +24,13 @@ import java.util.stream.Collectors;
 public class UserController {
 
     @Autowired
-    private UserService userService;
+    private final UserService userService;
+    private final JwtUtil jwtUtil;
+
+    public UserController(UserService userService, JwtUtil jwtUtil) {
+        this.userService = userService;
+        this.jwtUtil = jwtUtil;
+    }
 
     // Register user
     @PostMapping
@@ -54,6 +64,7 @@ public class UserController {
     }
 
     // Delete user (Admin only)
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("{userId}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long userId) {
         userService.deleteUser(userId);
@@ -70,22 +81,41 @@ public class UserController {
     // Dashboard stats (Admin only)
     @GetMapping("/stats")
     public ResponseEntity<Map<String, Object>> getUserStats() {
+
         return ResponseEntity.ok(userService.getUserStats());
     }
-
     @PostMapping("/login")
     public ResponseEntity<?> loginUser(@RequestBody User user){
 
         if (user == null || user.getUserName() == null || user.getPassword() == null) {
             return ResponseEntity.badRequest().body("Username and password are required.");
         }
+
         User u = userService.loginUser(user);
         if (u == null) {
-            // if login failed
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
         }
 
-        // if login success → return DTO
-        return ResponseEntity.ok(UserMapper.toDTO(u));
+        // Convert Role objects -> role names (e.g. "ADMIN", "CUSTOMER")
+        List<String> rolesList = u.getRoles().stream()
+                .map(Role::getRoleName)   // ensure Role has getName()
+                .toList();
+
+        // Generate JWT with username + roles
+        String token = jwtUtil.generateToken(u.getUserName(), rolesList);
+
+        Map<String, Object> responseBody = new HashMap<>();
+        responseBody.put("accessToken", token);
+        responseBody.put("tokenType", "Bearer");
+
+        Map<String, Object> userInfo = new HashMap<>();
+        userInfo.put("userId", u.getUserId());
+        userInfo.put("userName", u.getUserName());
+        userInfo.put("email", u.getEmail());
+        userInfo.put("roles", rolesList);
+
+        responseBody.put("user", userInfo);
+
+        return ResponseEntity.ok(responseBody);
     }
 }

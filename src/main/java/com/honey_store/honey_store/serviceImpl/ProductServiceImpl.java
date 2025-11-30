@@ -1,12 +1,14 @@
 package com.honey_store.honey_store.serviceImpl;
 
 
+import com.honey_store.honey_store.exceptions.ProductNotFoundException;
 import com.honey_store.honey_store.model.Product;
 import com.honey_store.honey_store.repository.ProductRepository;
 import com.honey_store.honey_store.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -22,6 +24,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public Product addProduct(Product product) {
 
         return productRepository.save(product);
@@ -47,9 +50,8 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public Product getProductById(Long productId) {
-        Product product=productRepository.findById(productId).orElseThrow(()->new RuntimeException("Product Not Found for this ProductID"+productId));
 
-        return product;
+        return productRepository.findById(productId).orElseThrow(()->new ProductNotFoundException("Product Not Found for this ProductID"+productId));
 
     }
 
